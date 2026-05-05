@@ -1,0 +1,164 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_stats %}
+
+{% block title %}{% trans "Site administration" %} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.qd-section-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:.75rem}
+.qd-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.5rem}
+.qd-card{background:#fff;border-radius:14px;padding:1.1rem 1.25rem;box-shadow:0 2px 10px rgba(0,0,0,.07);border-left:5px solid #6366f1;transition:transform .18s,box-shadow .18s;text-decoration:none!important;color:inherit!important;display:block}
+.qd-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.qd-card.c-indigo{border-color:#6366f1}.qd-card.c-red{border-color:#ef4444}.qd-card.c-amber{border-color:#f59e0b}.qd-card.c-green{border-color:#22c55e}.qd-card.c-teal{border-color:#14b8a6}.qd-card.c-violet{border-color:#8b5cf6}
+.qd-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}
+.qd-card-label{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#9ca3af}
+.qd-card-icon{font-size:1.4rem;opacity:.25}
+.qd-card-value{font-size:1.85rem;font-weight:800;line-height:1;color:#111827;margin-bottom:.2rem}
+.qd-card.c-red .qd-card-value{color:#ef4444}.qd-card.c-amber .qd-card-value{color:#d97706}.qd-card.c-green .qd-card-value{color:#16a34a}.qd-card.c-teal .qd-card-value{color:#0d9488}.qd-card.c-violet .qd-card-value{color:#7c3aed}
+.qd-card-sub{font-size:.76rem;color:#9ca3af;font-weight:500}
+.qd-block{background:#fff;border-radius:14px;padding:1.25rem 1.5rem;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:1.5rem}
+.qd-progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}
+.qd-progress-header h4{margin:0;font-size:.92rem;font-weight:700;color:#374151}
+.qd-progress-pct{font-size:1.05rem;font-weight:800;color:#6366f1}
+.qd-track{width:100%;height:13px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+.qd-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#6366f1 0%,#22c55e 100%)}
+.qd-track-labels{display:flex;justify-content:space-between;font-size:.72rem;color:#9ca3af;margin-top:.3rem}
+.qd-legend{display:flex;gap:1.25rem;margin-top:.65rem;font-size:.78rem;color:#6b7280}
+.qd-legend-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:.3rem;vertical-align:middle}
+.qd-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem}
+.qd-block-header h4{margin:0;font-size:.92rem;font-weight:700;color:#374151}
+.qd-block-header a{font-size:.78rem;color:#6366f1;text-decoration:none;font-weight:600}
+.qd-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.qd-table thead tr{background:#f9fafb}
+.qd-table thead th{padding:.5rem .85rem;text-align:left;font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;border-bottom:1px solid #e5e7eb}
+.qd-table tbody tr:hover{background:#fafafa}
+.qd-table tbody td{padding:.57rem .85rem;color:#374151;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+.qd-table tbody tr:last-child td{border-bottom:none}
+.qd-badge{display:inline-block;padding:.2em .65em;border-radius:999px;font-size:.7rem;font-weight:700;line-height:1}
+.qd-badge.unpaid{background:#fee2e2;color:#dc2626}.qd-badge.partial{background:#fef3c7;color:#d97706}.qd-badge.paid{background:#dcfce7;color:#16a34a}
+.qd-empty{display:flex;align-items:center;justify-content:center;height:70px;color:#9ca3af;font-size:.85rem}
+/* App list below */
+#content-main .module{border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.07);border:none;margin-bottom:1rem}
+#content-main .module caption{background:#6366f1!important;color:#fff!important;font-weight:700;letter-spacing:.04em;font-size:.8rem;text-transform:uppercase;padding:.65rem 1rem}
+#content-main .module table{width:100%}
+#content-main .module td,#content-main .module th{padding:.5rem 1rem}
+</style>
+{% endblock %}
+
+{% block content %}
+{% get_dashboard_stats as stats %}
+{% get_recent_debts 8 as recent_debts %}
+
+{% if stats %}
+
+  <!-- Stat Cards -->
+  <p class="qd-section-title">📊 Umumiy statistika</p>
+  <div class="qd-stat-grid">
+
+    <a href="{% url 'admin:debts_debt_changelist' %}" class="qd-card c-indigo">
+      <div class="qd-card-top"><span class="qd-card-label">Jami qarzlar</span><span class="qd-card-icon">📋</span></div>
+      <div class="qd-card-value">{{ stats.total_debts }}</div>
+      <div class="qd-card-sub">{{ stats.total_amount|fmt_uzs }}</div>
+    </a>
+
+    <a href="{% url 'admin:debts_debt_changelist' %}?status=unpaid" class="qd-card c-red">
+      <div class="qd-card-top"><span class="qd-card-label">To'lanmagan</span><span class="qd-card-icon">❌</span></div>
+      <div class="qd-card-value">{{ stats.unpaid_count }}</div>
+      <div class="qd-card-sub">{{ stats.unpaid_amount|fmt_uzs }}</div>
+    </a>
+
+    <a href="{% url 'admin:debts_debt_changelist' %}?status=partial" class="qd-card c-amber">
+      <div class="qd-card-top"><span class="qd-card-label">Qisman</span><span class="qd-card-icon">⏳</span></div>
+      <div class="qd-card-value">{{ stats.partial_count }}</div>
+      <div class="qd-card-sub">{{ stats.partial_amount|fmt_uzs }}</div>
+    </a>
+
+    <a href="{% url 'admin:debts_debt_changelist' %}?status=paid" class="qd-card c-green">
+      <div class="qd-card-top"><span class="qd-card-label">To'langan</span><span class="qd-card-icon">✅</span></div>
+      <div class="qd-card-value">{{ stats.paid_count }}</div>
+      <div class="qd-card-sub">{{ stats.total_paid|fmt_uzs }}</div>
+    </a>
+
+    <a href="{% url 'admin:customers_customer_changelist' %}" class="qd-card c-teal">
+      <div class="qd-card-top"><span class="qd-card-label">Mijozlar</span><span class="qd-card-icon">👥</span></div>
+      <div class="qd-card-value">{{ stats.customer_count }}</div>
+      <div class="qd-card-sub">Faol mijozlar</div>
+    </a>
+
+    <a href="{% url 'admin:payments_payment_changelist' %}" class="qd-card c-violet">
+      <div class="qd-card-top"><span class="qd-card-label">30 kun to'lovlar</span><span class="qd-card-icon">💳</span></div>
+      <div class="qd-card-value" style="font-size:1.3rem">{{ stats.recent_payments|fmt_uzs }}</div>
+      <div class="qd-card-sub">Oxirgi 30 kun</div>
+    </a>
+
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="qd-block">
+    <div class="qd-progress-header">
+      <h4>Undirish jarayoni</h4>
+      <span class="qd-progress-pct">{{ stats.collection_pct }}%</span>
+    </div>
+    <div class="qd-track"><div class="qd-fill" style="width:{{ stats.collection_pct }}%"></div></div>
+    <div class="qd-track-labels"><span>0 UZS</span><span>{{ stats.total_amount|fmt_uzs }}</span></div>
+    <div class="qd-legend">
+      <span><span class="qd-legend-dot" style="background:#6366f1"></span>To'langan: <strong>{{ stats.total_paid|fmt_uzs }}</strong></span>
+      <span><span class="qd-legend-dot" style="background:#ef4444"></span>Qoldiq: <strong>{{ stats.total_remaining|fmt_uzs }}</strong></span>
+    </div>
+  </div>
+
+  <!-- Recent Debts -->
+  <div class="qd-block">
+    <div class="qd-block-header">
+      <h4>So'nggi qarzlar</h4>
+      <a href="{% url 'admin:debts_debt_changelist' %}">Barchasini ko'rish →</a>
+    </div>
+    {% if recent_debts %}
+    <table class="qd-table">
+      <thead><tr><th>Mijoz</th><th>Jami</th><th>To'langan</th><th>Qoldiq</th><th>Status</th><th>Sana</th></tr></thead>
+      <tbody>
+        {% for debt in recent_debts %}
+        <tr>
+          <td><a href="{% url 'admin:debts_debt_change' debt.pk %}" style="color:#4f46e5;text-decoration:none;font-weight:600">{{ debt.customer.full_name }}</a></td>
+          <td><strong>{{ debt.total_amount|fmt_uzs }}</strong></td>
+          <td style="color:#16a34a;font-weight:600">{{ debt.paid_amount|fmt_uzs }}</td>
+          <td style="color:#dc2626;font-weight:600">{{ debt.remaining_amount|fmt_uzs }}</td>
+          <td><span class="qd-badge {{ debt.status }}">{% if debt.status == "unpaid" %}To'lanmagan{% elif debt.status == "partial" %}Qisman{% else %}To'langan{% endif %}</span></td>
+          <td style="color:#9ca3af">{{ debt.created_at|date:"d.m.Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="qd-empty">Hali qarz qo'shilmagan</div>
+    {% endif %}
+  </div>
+
+{% endif %}
+
+<!-- Default App List -->
+<p class="qd-section-title" style="margin-top:.25rem">🗂 Modellar</p>
+{% for app in app_list %}
+<div class="module{% if app.app_url %} current-app{% endif %}">
+  <table>
+    <caption>
+      <a href="{{ app.app_url }}" class="section">{{ app.name }}</a>
+    </caption>
+    {% for model in app.models %}
+    <tr class="model-{{ model.object_name|lower }}">
+      {% if model.admin_url %}<th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+      {% else %}<th scope="row">{{ model.name }}</th>{% endif %}
+      {% if model.add_url %}<td><a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a></td>
+      {% else %}<td>&nbsp;</td>{% endif %}
+      {% if model.admin_url %}<td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
+      {% else %}<td>&nbsp;</td>{% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% empty %}
+<p>{% trans "You don't have permission to view or edit anything." %}</p>
+{% endfor %}
+
+{% endblock %}

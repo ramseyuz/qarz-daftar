@@ -1,0 +1,188 @@
+/* ─── Qarz Daftar Custom Admin CSS ─── */
+
+/* Typography */
+body, .content-wrapper, .main-header {
+    font-family: 'Inter', 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* ─── Stat Cards ─── */
+.qd-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin: 1.5rem 0;
+}
+
+.qd-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    border-left: 5px solid #6366f1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform .18s, box-shadow .18s;
+}
+.qd-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+
+.qd-card.indigo { border-color: #6366f1; }
+.qd-card.red    { border-color: #ef4444; }
+.qd-card.amber  { border-color: #f59e0b; }
+.qd-card.green  { border-color: #22c55e; }
+.qd-card.teal   { border-color: #14b8a6; }
+
+.qd-card-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+.qd-card-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #111827;
+}
+.qd-card.red    .qd-card-value { color: #ef4444; }
+.qd-card.amber  .qd-card-value { color: #d97706; }
+.qd-card.green  .qd-card-value { color: #16a34a; }
+
+.qd-card-sub {
+    font-size: 0.82rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.qd-card-icon {
+    font-size: 2rem;
+    opacity: 0.15;
+    align-self: flex-end;
+    margin-top: -0.5rem;
+}
+
+/* ─── Progress Bar ─── */
+.qd-progress-wrap {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    margin-bottom: 1.5rem;
+}
+.qd-progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .65rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+.qd-progress-track {
+    width: 100%;
+    height: 14px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+.qd-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6366f1 0%, #22c55e 100%);
+    transition: width .7s ease;
+}
+
+/* ─── Recent table ─── */
+.qd-table-wrap {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.qd-table-head {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.qd-table-head .material-icons { font-size: 1.1rem; color: #6366f1; }
+.qd-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.qd-table-wrap thead tr { background: #f9fafb; }
+.qd-table-wrap thead th {
+    padding: .65rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid #e5e7eb;
+}
+.qd-table-wrap tbody tr:hover { background: #f9fafb; }
+.qd-table-wrap tbody td {
+    padding: .65rem 1rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+.qd-table-wrap tbody tr:last-child td { border-bottom: none; }
+
+.badge {
+    display: inline-block;
+    padding: .2em .65em;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+.badge-unpaid  { background: #fee2e2; color: #dc2626; }
+.badge-partial { background: #fef3c7; color: #d97706; }
+.badge-paid    { background: #dcfce7; color: #16a34a; }
+
+/* ─── Jazzmin sidebar tweaks ─── */
+.nav-sidebar .nav-link {
+    border-radius: 8px !important;
+    margin: 1px 6px !important;
+    font-weight: 500;
+}
+.nav-sidebar .nav-link.active {
+    background: rgba(99,102,241,.18) !important;
+    color: #fff !important;
+}
+
+/* ─── Header ─── */
+.main-header .navbar-brand-text { font-weight: 800; letter-spacing: .03em; }
+
+/* ─── Content header ─── */
+.content-header h1 { font-weight: 800; font-size: 1.5rem; }
+
+/* ─── Buttons ─── */
+.btn-primary { background: #6366f1 !important; border-color: #6366f1 !important; }
+.btn-primary:hover { background: #4f46e5 !important; border-color: #4f46e5 !important; }
+
+/* ─── Dark mode cards ─── */
+.dark-mode .qd-card,
+.dark-mode .qd-progress-wrap,
+.dark-mode .qd-table-wrap {
+    background: #1f2937;
+    box-shadow: 0 2px 12px rgba(0,0,0,.4);
+}
+.dark-mode .qd-card-value { color: #f9fafb; }
+.dark-mode .qd-card-label,
+.dark-mode .qd-card-sub,
+.dark-mode .qd-table-wrap tbody td { color: #9ca3af; }
+.dark-mode .qd-table-wrap thead th { color: #6b7280; }
+.dark-mode .qd-table-wrap thead tr { background: #111827; }
+.dark-mode .qd-table-wrap tbody tr:hover { background: #111827; }
+.dark-mode .qd-progress-track { background: #374151; }
+.dark-mode .qd-progress-label { color: #d1d5db; }
+.dark-mode .qd-table-head { color: #d1d5db; border-color: #374151; }
