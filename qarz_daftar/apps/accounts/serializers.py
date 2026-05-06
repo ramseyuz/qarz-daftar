@@ -46,7 +46,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """Extends JWT payload with user role and business info."""
+    """Login with username + password. Extends JWT payload with role and business info."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Replace the default email field with a username field
+        self.fields.pop(User.USERNAME_FIELD, None)
+        self.fields["username"] = serializers.CharField()
 
     @classmethod
     def get_token(cls, user):
@@ -57,6 +63,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        # Look up user by username, swap in their email so the parent can authenticate
+        username = attrs.pop("username", None)
+        try:
+            user = User.objects.get(username=username)
+            attrs[User.USERNAME_FIELD] = user.email
+        except User.DoesNotExist:
+            attrs[User.USERNAME_FIELD] = username  # let parent raise the auth error
         data = super().validate(attrs)
         data["user"] = {
             "id": str(self.user.id),
@@ -66,6 +79,49 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             "business_id": str(self.user.business_id) if self.user.business_id else None,
         }
         return data
+
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    """Read/update serializer for superadmin user management."""
+    business_name = serializers.CharField(source="business.name", read_only=True)
+    new_password  = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id", "email", "username", "first_name", "last_name",
+            "phone", "role", "is_active", "is_superuser",
+            "business", "business_name", "date_joined", "new_password",
+        ]
+        read_only_fields = ["id", "date_joined"]
+
+    def update(self, instance, validated_data):
+        new_password = validated_data.pop("new_password", None)
+        instance = super().update(instance, validated_data)
+        if new_password:
+            instance.set_password(new_password)
+            instance.save(update_fields=["password"])
+        return instance
+
+
+class UserAdminCreateSerializer(serializers.ModelSerializer):
+    """Create-only serializer for superadmin — sets password."""
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+
+    class Meta:
+        model = User
+        fields = [
+            "email", "username", "first_name", "last_name",
+            "phone", "role", "is_active", "is_superuser",
+            "business", "password",
+        ]
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        user = User(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
 class ChangePasswordSerializer(serializers.Serializer):

@@ -20,7 +20,6 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 #  Application definition
 # ──────────────────────────────────────────────
 DJANGO_APPS = [
-    "jazzmin",                       # Must be before django.contrib.admin
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -122,6 +121,7 @@ USE_TZ = True
 # ──────────────────────────────────────────────
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 MEDIA_URL = "/media/"
@@ -202,101 +202,6 @@ SPECTACULAR_SETTINGS = {
         "persistAuthorization": True,
         "displayOperationId": False,
     },
-}
-
-# ──────────────────────────────────────────────
-#  Jazzmin admin panel
-# ──────────────────────────────────────────────
-JAZZMIN_SETTINGS = {
-    "site_title": "Qarz Daftar",
-    "site_header": "Qarz Daftar",
-    "site_brand": "Qarz Daftar",
-    "site_logo": None,
-    "site_logo_classes": "img-circle",
-    "welcome_sign": "Qarz Daftar boshqaruv paneliga xush kelibsiz",
-    "copyright": "Qarz Daftar © 2025",
-    "search_model": ["accounts.User", "customers.Customer", "debts.Debt"],
-    "user_avatar": "avatar",
-
-    "topmenu_links": [
-        {"name": "Bosh sahifa", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Sayt", "url": "/", "new_window": True},
-        {"name": "API Docs", "url": "/api/schema/swagger-ui/", "new_window": True},
-    ],
-
-    "usermenu_links": [
-        {"name": "API Docs", "url": "/api/schema/swagger-ui/", "new_window": True, "icon": "fas fa-book"},
-    ],
-
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "hide_apps": ["token_blacklist"],
-    "hide_models": [],
-    "order_with_respect_to": [
-        "accounts",
-        "businesses",
-        "customers",
-        "debts",
-        "payments",
-        "products",
-    ],
-    "icons": {
-        "auth":                  "fas fa-shield-alt",
-        "auth.Group":            "fas fa-users",
-        "accounts.User":         "fas fa-user-circle",
-        "businesses.Business":   "fas fa-store",
-        "customers.Customer":    "fas fa-user-friends",
-        "debts.Debt":            "fas fa-file-invoice-dollar",
-        "debts.DebtItem":        "fas fa-list-alt",
-        "payments.Payment":      "fas fa-money-check-alt",
-        "products.Product":      "fas fa-box-open",
-    },
-    "default_icon_parents": "fas fa-folder",
-    "default_icon_children": "fas fa-dot-circle",
-
-    "related_modal_active": True,
-    "custom_css": "admin/css/custom.css",
-    "custom_js": None,
-    "use_google_fonts_cdn": True,
-    "show_ui_builder": False,
-    "changeform_format": "horizontal_tabs",
-    "changeform_format_overrides": {
-        "auth.user": "collapsible",
-    },
-    "language_chooser": False,
-}
-
-JAZZMIN_UI_TWEAKS = {
-    "navbar_small_text": False,
-    "footer_small_text": True,
-    "body_small_text": False,
-    "brand_small_text": False,
-    "brand_colour": "navbar-primary",
-    "accent": "accent-primary",
-    "navbar": "navbar-white navbar-light",
-    "no_navbar_border": True,
-    "navbar_fixed": True,
-    "layout_boxed": False,
-    "footer_fixed": False,
-    "sidebar_fixed": True,
-    "sidebar": "sidebar-dark-primary",
-    "sidebar_nav_small_text": False,
-    "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": True,
-    "sidebar_nav_compact_style": True,
-    "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": False,
-    "theme": "flatly",
-    "dark_mode_theme": "darkly",
-    "button_classes": {
-        "primary": "btn-primary",
-        "secondary": "btn-outline-secondary",
-        "info": "btn-info",
-        "warning": "btn-warning",
-        "danger": "btn-danger",
-        "success": "btn-success",
-    },
-    "actions_sticky_top": True,
 }
 
 # ──────────────────────────────────────────────

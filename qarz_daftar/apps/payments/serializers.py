@@ -4,14 +4,15 @@ from .models import Payment
 
 class PaymentSerializer(serializers.ModelSerializer):
     customer_name = serializers.CharField(source="debt.customer.full_name", read_only=True)
-    debt_total = serializers.DecimalField(
+    business_name = serializers.CharField(source="debt.business.name", read_only=True)
+    debt_total    = serializers.DecimalField(
         source="debt.total_amount", max_digits=15, decimal_places=2, read_only=True
     )
 
     class Meta:
         model = Payment
         fields = [
-            "id", "debt", "customer_name", "debt_total",
+            "id", "debt", "customer_name", "business_name", "debt_total",
             "amount", "payment_method", "notes", "created_at",
         ]
         read_only_fields = ["id", "created_at"]

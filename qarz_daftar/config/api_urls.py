@@ -10,21 +10,21 @@ from apps.accounts.views import (
     LogoutView,
     TokenRefreshView,
     ProfileView,
+    UsersViewSet,
 )
 from apps.businesses.views import BusinessViewSet
 from apps.customers.views import CustomerViewSet
 from apps.debts.views import DebtViewSet, DebtItemViewSet
 from apps.payments.views import PaymentViewSet
-from apps.products.views import ProductViewSet
 from apps.debts.views import DebtReportView
 
 router = DefaultRouter()
+router.register(r"users",      UsersViewSet,   basename="user")
 router.register(r"businesses", BusinessViewSet, basename="business")
 router.register(r"customers", CustomerViewSet, basename="customer")
 router.register(r"debts", DebtViewSet, basename="debt")
 router.register(r"debt-items", DebtItemViewSet, basename="debt-item")
 router.register(r"payments", PaymentViewSet, basename="payment")
-router.register(r"products", ProductViewSet, basename="product")
 
 urlpatterns = [
     # ── Auth ───────────────────────────────────

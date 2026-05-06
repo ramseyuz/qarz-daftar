@@ -20,13 +20,14 @@ class PaymentInlineSerializer(serializers.ModelSerializer):
 
 class DebtSerializer(serializers.ModelSerializer):
     customer_detail = CustomerSerializer(source="customer", read_only=True)
-    items = DebtItemSerializer(many=True, read_only=True)
+    business_name   = serializers.CharField(source="business.name", read_only=True)
+    items    = DebtItemSerializer(many=True, read_only=True)
     payments = PaymentInlineSerializer(many=True, read_only=True)
 
     class Meta:
         model = Debt
         fields = [
-            "id", "customer", "customer_detail", "business",
+            "id", "customer", "customer_detail", "business", "business_name",
             "description", "total_amount", "paid_amount",
             "remaining_amount", "status", "due_date",
             "items", "payments", "created_at", "updated_at",

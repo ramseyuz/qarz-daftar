@@ -1,6 +1,8 @@
 """
 Debt and DebtItem models with auto-calculated fields.
 """
+from decimal import Decimal
+
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
@@ -29,19 +31,19 @@ class Debt(BaseModel):
     description = models.TextField(blank=True, verbose_name=_("Description"))
     total_amount = models.DecimalField(
         max_digits=15, decimal_places=2,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal("0"))],
         verbose_name=_("Total amount"),
     )
     paid_amount = models.DecimalField(
         max_digits=15, decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal("0"))],
         verbose_name=_("Paid amount"),
     )
     remaining_amount = models.DecimalField(
         max_digits=15, decimal_places=2,
         default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal("0"))],
         verbose_name=_("Remaining amount"),
         editable=False,
     )
@@ -94,13 +96,6 @@ class DebtItem(BaseModel):
         on_delete=models.CASCADE,
         related_name="items",
         verbose_name=_("Debt"),
-    )
-    product = models.ForeignKey(
-        "products.Product",
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name="debt_items",
-        verbose_name=_("Product"),
     )
     name = models.CharField(
         max_length=200,

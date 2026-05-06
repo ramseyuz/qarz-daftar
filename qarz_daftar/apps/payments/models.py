@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
@@ -19,7 +21,7 @@ class Payment(BaseModel):
     )
     amount = models.DecimalField(
         max_digits=15, decimal_places=2,
-        validators=[MinValueValidator(0.01)],
+        validators=[MinValueValidator(Decimal("0.01"))],
         verbose_name=_("Amount"),
     )
     payment_method = models.CharField(

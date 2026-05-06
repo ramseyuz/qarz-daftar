@@ -41,8 +41,6 @@ class BusinessViewSet(BusinessScopedMixin, viewsets.ModelViewSet):
         return Business.objects.none()
 
     def get_permissions(self):
-        if self.action in ["create"]:
-            return [permissions.IsAuthenticated()]
-        if self.action in ["destroy"]:
+        if self.action in ["create", "destroy"]:
             return [IsSuperAdmin()]
         return [permissions.IsAuthenticated()]

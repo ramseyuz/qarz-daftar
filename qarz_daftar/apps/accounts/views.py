@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status, permissions, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import (
@@ -7,11 +7,14 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView as BaseTokenRefreshView,
 )
 from rest_framework_simplejwt.tokens import RefreshToken
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
+from core.permissions import IsSuperAdmin
 from .serializers import (
     UserRegistrationSerializer,
     UserProfileSerializer,
+    UserAdminSerializer,
+    UserAdminCreateSerializer,
     CustomTokenObtainPairSerializer,
     ChangePasswordSerializer,
 )
@@ -112,3 +115,27 @@ class ChangePasswordView(APIView):
         user.set_password(serializer.validated_data["new_password"])
         user.save()
         return Response({"status": "success", "message": "Password changed successfully."})
+
+
+@extend_schema_view(
+    list=extend_schema(summary="List all users", tags=["Users"]),
+    create=extend_schema(summary="Create user", tags=["Users"]),
+    retrieve=extend_schema(summary="Get user", tags=["Users"]),
+    update=extend_schema(summary="Update user", tags=["Users"]),
+    partial_update=extend_schema(summary="Patch user", tags=["Users"]),
+    destroy=extend_schema(summary="Delete user", tags=["Users"]),
+)
+class UsersViewSet(viewsets.ModelViewSet):
+    """Full user management — superadmin only."""
+
+    queryset = User.objects.select_related("business").order_by("-date_joined")
+    permission_classes = [IsSuperAdmin]
+
+    def get_serializer_class(self):
+        if self.action in ("create",):
+            return UserAdminCreateSerializer
+        return UserAdminSerializer
+
+    def perform_destroy(self, instance):
+        instance.is_active = False
+        instance.save(update_fields=["is_active"])

@@ -1,0 +1,130 @@
+<div class="flex flex-col sm:flex-row items-center md:items-start sm:justify-center md:justify-start flex-auto min-w-0">
+    <div class="md:flex md:items-center md:justify-end w-full sm:w-auto md:h-full md:w-1/2 py-8 px-4 sm:p-12 md:p-16 sm:rounded-2xl md:rounded-none sm:shadow md:shadow-none sm:bg-card">
+        <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0">
+            <!-- Logo -->
+            <div class="w-12">
+                <img src="assets/images/logo/logo.svg">
+            </div>
+
+            <!-- Title -->
+            <div class="mt-8 text-4xl font-extrabold tracking-tight leading-tight">Sign up</div>
+            <div class="flex items-baseline mt-0.5 font-medium">
+                <div>Already have an account?</div>
+                <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['/sign-in']">Sign in</a>
+            </div>
+
+            <!-- Alert -->
+            <fuse-alert
+                class="mt-8"
+                *ngIf="showAlert"
+                [appearance]="'outline'"
+                [showIcon]="false"
+                [type]="alert.type"
+                [@shake]="alert.type === 'error'">
+                {{alert.message}}
+            </fuse-alert>
+
+            <!-- Sign Up form -->
+            <form class="mt-8" [formGroup]="signUpForm" #signUpNgForm="ngForm">
+
+                <!-- First Name -->
+                <mat-form-field class="w-full">
+                    <mat-label>First name</mat-label>
+                    <input id="first_name" matInput [formControlName]="'first_name'">
+                    <mat-error *ngIf="signUpForm.get('first_name').hasError('required')">First name is required</mat-error>
+                </mat-form-field>
+
+                <!-- Last Name -->
+                <mat-form-field class="w-full">
+                    <mat-label>Last name</mat-label>
+                    <input id="last_name" matInput [formControlName]="'last_name'">
+                    <mat-error *ngIf="signUpForm.get('last_name').hasError('required')">Last name is required</mat-error>
+                </mat-form-field>
+
+                <!-- Username -->
+                <mat-form-field class="w-full">
+                    <mat-label>Username</mat-label>
+                    <input id="username" matInput [formControlName]="'username'">
+                    <mat-error *ngIf="signUpForm.get('username').hasError('required')">Username is required</mat-error>
+                </mat-form-field>
+
+                <!-- Email -->
+                <mat-form-field class="w-full">
+                    <mat-label>Email address</mat-label>
+                    <input id="email" matInput [formControlName]="'email'">
+                    <mat-error *ngIf="signUpForm.get('email').hasError('required')">Email is required</mat-error>
+                    <mat-error *ngIf="signUpForm.get('email').hasError('email')">Please enter a valid email</mat-error>
+                </mat-form-field>
+
+                <!-- Password -->
+                <mat-form-field class="w-full">
+                    <mat-label>Password</mat-label>
+                    <input id="password" matInput type="password" [formControlName]="'password'" #passwordField>
+                    <button mat-icon-button type="button"
+                        (click)="passwordField.type === 'password' ? passwordField.type = 'text' : passwordField.type = 'password'"
+                        matSuffix>
+                        <mat-icon class="icon-size-5" *ngIf="passwordField.type === 'password'" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
+                        <mat-icon class="icon-size-5" *ngIf="passwordField.type === 'text'" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+                    </button>
+                    <mat-error>Password is required</mat-error>
+                </mat-form-field>
+
+                <!-- Confirm Password -->
+                <mat-form-field class="w-full">
+                    <mat-label>Confirm password</mat-label>
+                    <input id="password2" matInput type="password" [formControlName]="'password2'" #passwordField2>
+                    <button mat-icon-button type="button"
+                        (click)="passwordField2.type === 'password' ? passwordField2.type = 'text' : passwordField2.type = 'password'"
+                        matSuffix>
+                        <mat-icon class="icon-size-5" *ngIf="passwordField2.type === 'password'" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
+                        <mat-icon class="icon-size-5" *ngIf="passwordField2.type === 'text'" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+                    </button>
+                    <mat-error>Confirm password is required</mat-error>
+                </mat-form-field>
+
+                <!-- ToS -->
+                <div class="inline-flex items-end w-full mt-1.5">
+                    <mat-checkbox class="-ml-2" [color]="'primary'" [formControlName]="'agreements'">
+                        <span>I agree with</span>
+                        <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['./']">Terms</a>
+                        <span> and </span>
+                        <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['./']">Privacy Policy</a>
+                    </mat-checkbox>
+                </div>
+
+                <!-- Submit -->
+                <button
+                    class="fuse-mat-button-large w-full mt-6"
+                    mat-flat-button
+                    [color]="'primary'"
+                    [disabled]="signUpForm.disabled"
+                    (click)="signUp()">
+                    <span *ngIf="!signUpForm.disabled">Create account</span>
+                    <mat-progress-spinner
+                        *ngIf="signUpForm.disabled"
+                        [diameter]="24"
+                        [mode]="'indeterminate'"></mat-progress-spinner>
+                </button>
+
+            </form>
+        </div>
+    </div>
+    <div class="relative hidden md:flex flex-auto items-center justify-center w-1/2 h-full p-16 lg:px-28 overflow-hidden bg-gray-800 dark:border-l">
+        <svg class="absolute inset-0 pointer-events-none"
+             viewBox="0 0 960 540" width="100%" height="100%" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+            <g class="text-gray-700 opacity-25" fill="none" stroke="currentColor" stroke-width="100">
+                <circle r="234" cx="196" cy="23"></circle>
+                <circle r="234" cx="790" cy="491"></circle>
+            </g>
+        </svg>
+        <div class="z-10 relative w-full max-w-2xl">
+            <div class="text-7xl font-bold leading-none text-gray-100">
+                <div>Qarz Daftar</div>
+                <div>Debt Manager</div>
+            </div>
+            <div class="mt-6 text-lg tracking-tight leading-6 text-gray-400">
+                Manage your business debts, customers, and payments in one place.
+            </div>
+        </div>
+    </div>
+</div>
