@@ -61,13 +61,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """Login with username + password. Extends JWT payload with role and business info."""
+    """Login with username or phone + password."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Replace the default email field with a username field
         self.fields.pop(User.USERNAME_FIELD, None)
-        self.fields["username"] = serializers.CharField()
+        self.fields["username"] = serializers.CharField(label="Username or phone")
 
     @classmethod
     def get_token(cls, user):
@@ -78,13 +77,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
-        # Look up user by username, swap in their email so the parent can authenticate
-        username = attrs.pop("username", None)
-        try:
-            user = User.objects.get(username=username)
-            attrs[User.USERNAME_FIELD] = user.email
-        except User.DoesNotExist:
-            attrs[User.USERNAME_FIELD] = username  # let parent raise the auth error
+        login = attrs.pop("username", None)
+        user = (
+            User.objects.filter(username=login).first()
+            or User.objects.filter(phone=login).first()
+        )
+        attrs[User.USERNAME_FIELD] = user.email if user else login
         data = super().validate(attrs)
         data["user"] = {
             "id": str(self.user.id),

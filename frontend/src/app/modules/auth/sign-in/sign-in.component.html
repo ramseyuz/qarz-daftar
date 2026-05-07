@@ -42,15 +42,15 @@
         [formGroup]="signInForm"
         #signInNgForm="ngForm">
 
-        <!-- Username field -->
+        <!-- Username / Phone field -->
         <mat-form-field class="w-full">
-          <mat-label>Username</mat-label>
+          <mat-label>Username or Phone</mat-label>
           <input
             id="username"
             matInput
             [formControlName]="'username'">
           <mat-error *ngIf="signInForm.get('username').hasError('required')">
-            Username is required
+            Username or phone is required
           </mat-error>
         </mat-form-field>
 

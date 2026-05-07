@@ -19,7 +19,11 @@ from .serializers import DebtSerializer, DebtCreateWithItemsSerializer, DebtItem
 
 class DebtFilter(FilterSet):
     status = df.CharFilter(field_name="status")
+    exclude_status = df.CharFilter(method="filter_exclude_status")
     customer = df.UUIDFilter(field_name="customer__id")
+
+    def filter_exclude_status(self, queryset, name, value):
+        return queryset.exclude(status=value)
     date_from = df.DateFilter(field_name="created_at__date", lookup_expr="gte")
     date_to = df.DateFilter(field_name="created_at__date", lookup_expr="lte")
     min_amount = df.NumberFilter(field_name="total_amount", lookup_expr="gte")
@@ -36,7 +40,7 @@ class DebtFilter(FilterSet):
 
     class Meta:
         model = Debt
-        fields = ["status", "customer", "date_from", "date_to"]
+        fields = ["status", "exclude_status", "customer", "date_from", "date_to"]
 
 
 @extend_schema_view(

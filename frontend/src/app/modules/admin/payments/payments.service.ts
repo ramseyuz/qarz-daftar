@@ -29,6 +29,6 @@ export class PaymentsService
 
     getDebts(): Observable<any>
     {
-        return this._http.get(`${this._api}/debts/?status=unpaid&page_size=200`);
+        return this._http.get(`${this._api}/debts/?exclude_status=paid&page_size=200`);
     }
 }
