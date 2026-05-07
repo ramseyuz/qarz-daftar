@@ -185,29 +185,32 @@ class DebtReportView(APIView):
             qs = qs.filter(business=user.business)
 
         # ── Status summary ────────────────────────────────
-        totals = qs.aggregate(
+        agg = qs.aggregate(
             total_debts=Count("id"),
             total_amount=Sum("total_amount"),
             total_paid=Sum("paid_amount"),
             total_remaining=Sum("remaining_amount"),
+            unpaid_count=Count("id", filter=Q(status="unpaid")),
+            partial_count=Count("id", filter=Q(status="partial")),
+            paid_count=Count("id", filter=Q(status="paid")),
+            # unpaid/partial → remaining_amount (what's still owed)
+            # paid           → total_amount     (fully collected)
+            unpaid_amount=Sum("remaining_amount", filter=Q(status="unpaid")),
+            partial_amount=Sum("remaining_amount", filter=Q(status="partial")),
+            paid_amount=Sum("total_amount",    filter=Q(status="paid")),
         )
-        by_status = (
-            qs.values("status")
-            .annotate(count=Count("id"), amount=Sum("total_amount"))
-        )
-        status_map = {row["status"]: row for row in by_status}
 
         summary = {
-            "total_debts":       totals["total_debts"] or 0,
-            "total_amount":      float(totals["total_amount"] or 0),
-            "total_paid":        float(totals["total_paid"] or 0),
-            "total_remaining":   float(totals["total_remaining"] or 0),
-            "unpaid_count":      status_map.get("unpaid",  {}).get("count", 0),
-            "partial_count":     status_map.get("partial", {}).get("count", 0),
-            "paid_count":        status_map.get("paid",    {}).get("count", 0),
-            "unpaid_amount":     float(status_map.get("unpaid",  {}).get("amount") or 0),
-            "partial_amount":    float(status_map.get("partial", {}).get("amount") or 0),
-            "paid_amount":       float(status_map.get("paid",    {}).get("amount") or 0),
+            "total_debts":     agg["total_debts"] or 0,
+            "total_amount":    float(agg["total_amount"] or 0),
+            "total_paid":      float(agg["total_paid"] or 0),
+            "total_remaining": float(agg["total_remaining"] or 0),
+            "unpaid_count":    agg["unpaid_count"] or 0,
+            "partial_count":   agg["partial_count"] or 0,
+            "paid_count":      agg["paid_count"] or 0,
+            "unpaid_amount":   float(agg["unpaid_amount"] or 0),
+            "partial_amount":  float(agg["partial_amount"] or 0),
+            "paid_amount":     float(agg["paid_amount"] or 0),
         }
 
         # ── Monthly (last 12 months) ──────────────────────
