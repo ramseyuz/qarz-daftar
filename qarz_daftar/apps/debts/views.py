@@ -193,10 +193,11 @@ class DebtReportView(APIView):
             s_unpaid_count=Count("id", filter=Q(status="unpaid")),
             s_partial_count=Count("id", filter=Q(status="partial")),
             s_paid_count=Count("id", filter=Q(status="paid")),
-            # remaining_amount = what's still owed (for unpaid/partial)
-            # total_amount for paid = fully collected amount
-            s_unpaid_amount=Sum("remaining_amount", filter=Q(status="unpaid")),
-            s_partial_amount=Sum("remaining_amount", filter=Q(status="partial")),
+            # unpaid_amount  = total still owed across unpaid + partial debts
+            # partial_amount = total already paid on partial debts
+            # paid_amount    = total collected from fully paid debts
+            s_unpaid_amount=Sum("remaining_amount", filter=Q(status__in=["unpaid", "partial"])),
+            s_partial_amount=Sum("paid_amount", filter=Q(status="partial")),
             s_paid_amount=Sum("total_amount", filter=Q(status="paid")),
         )
 
