@@ -186,31 +186,31 @@ class DebtReportView(APIView):
 
         # ── Status summary ────────────────────────────────
         agg = qs.aggregate(
-            total_debts=Count("id"),
-            total_amount=Sum("total_amount"),
-            total_paid=Sum("paid_amount"),
-            total_remaining=Sum("remaining_amount"),
-            unpaid_count=Count("id", filter=Q(status="unpaid")),
-            partial_count=Count("id", filter=Q(status="partial")),
-            paid_count=Count("id", filter=Q(status="paid")),
-            # unpaid/partial → remaining_amount (what's still owed)
-            # paid           → total_amount     (fully collected)
-            unpaid_amount=Sum("remaining_amount", filter=Q(status="unpaid")),
-            partial_amount=Sum("remaining_amount", filter=Q(status="partial")),
-            paid_amount=Sum("total_amount",    filter=Q(status="paid")),
+            s_total_debts=Count("id"),
+            s_total_amount=Sum("total_amount"),
+            s_total_paid=Sum("paid_amount"),
+            s_total_remaining=Sum("remaining_amount"),
+            s_unpaid_count=Count("id", filter=Q(status="unpaid")),
+            s_partial_count=Count("id", filter=Q(status="partial")),
+            s_paid_count=Count("id", filter=Q(status="paid")),
+            # remaining_amount = what's still owed (for unpaid/partial)
+            # total_amount for paid = fully collected amount
+            s_unpaid_amount=Sum("remaining_amount", filter=Q(status="unpaid")),
+            s_partial_amount=Sum("remaining_amount", filter=Q(status="partial")),
+            s_paid_amount=Sum("total_amount", filter=Q(status="paid")),
         )
 
         summary = {
-            "total_debts":     agg["total_debts"] or 0,
-            "total_amount":    float(agg["total_amount"] or 0),
-            "total_paid":      float(agg["total_paid"] or 0),
-            "total_remaining": float(agg["total_remaining"] or 0),
-            "unpaid_count":    agg["unpaid_count"] or 0,
-            "partial_count":   agg["partial_count"] or 0,
-            "paid_count":      agg["paid_count"] or 0,
-            "unpaid_amount":   float(agg["unpaid_amount"] or 0),
-            "partial_amount":  float(agg["partial_amount"] or 0),
-            "paid_amount":     float(agg["paid_amount"] or 0),
+            "total_debts":     agg["s_total_debts"] or 0,
+            "total_amount":    float(agg["s_total_amount"] or 0),
+            "total_paid":      float(agg["s_total_paid"] or 0),
+            "total_remaining": float(agg["s_total_remaining"] or 0),
+            "unpaid_count":    agg["s_unpaid_count"] or 0,
+            "partial_count":   agg["s_partial_count"] or 0,
+            "paid_count":      agg["s_paid_count"] or 0,
+            "unpaid_amount":   float(agg["s_unpaid_amount"] or 0),
+            "partial_amount":  float(agg["s_partial_amount"] or 0),
+            "paid_amount":     float(agg["s_paid_amount"] or 0),
         }
 
         # ── Monthly (last 12 months) ──────────────────────
