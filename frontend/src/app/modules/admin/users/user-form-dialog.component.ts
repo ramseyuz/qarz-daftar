@@ -20,7 +20,7 @@ import { UsersManagementService } from './users.service';
         MatIconModule, MatInputModule, MatProgressSpinnerModule, MatSelectModule,
     ],
     template: `
-        <h2 mat-dialog-title>{{ isEdit ? 'Edit User' : 'New User' }}</h2>
+        <h2 mat-dialog-title>{{ isEdit ? 'Edit ' + (isOwnerContext ? 'Employee' : 'User') : (isOwnerContext ? 'New Employee' : 'New User') }}</h2>
         <mat-dialog-content style="min-width:480px">
             <form [formGroup]="form" class="flex flex-col gap-4 pt-2">
                 <div class="grid grid-cols-2 gap-4">
@@ -40,28 +40,42 @@ import { UsersManagementService } from './users.service';
                 </mat-form-field>
                 <mat-form-field>
                     <mat-label>Username</mat-label>
-                    <input matInput formControlName="username">
+                    <input matInput formControlName="username" [readonly]="isEdit && isOwnerContext">
                     <mat-error *ngIf="form.get('username').hasError('required')">Required</mat-error>
                 </mat-form-field>
                 <mat-form-field>
                     <mat-label>Phone</mat-label>
                     <input matInput formControlName="phone" placeholder="+998901234567">
                 </mat-form-field>
-                <mat-form-field>
-                    <mat-label>Role</mat-label>
-                    <mat-select formControlName="role">
-                        <mat-option value="superadmin">Super Admin</mat-option>
-                        <mat-option value="owner">Owner</mat-option>
-                        <mat-option value="employee">Employee</mat-option>
-                    </mat-select>
-                </mat-form-field>
-                <mat-form-field>
-                    <mat-label>Business</mat-label>
-                    <mat-select formControlName="business">
-                        <mat-option [value]="null">— No business —</mat-option>
-                        <mat-option *ngFor="let b of businesses" [value]="b.id">{{ b.name }}</mat-option>
-                    </mat-select>
-                </mat-form-field>
+
+                <!-- Superadmin-only fields -->
+                <ng-container *ngIf="!isOwnerContext">
+                    <mat-form-field>
+                        <mat-label>Role</mat-label>
+                        <mat-select formControlName="role">
+                            <mat-option value="superadmin">Super Admin</mat-option>
+                            <mat-option value="owner">Owner</mat-option>
+                            <mat-option value="employee">Employee</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field>
+                        <mat-label>Business</mat-label>
+                        <mat-select formControlName="business">
+                            <mat-option [value]="null">— No business —</mat-option>
+                            <mat-option *ngFor="let b of businesses" [value]="b.id">{{ b.name }}</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <div class="flex gap-4">
+                        <mat-checkbox formControlName="is_active">Active</mat-checkbox>
+                        <mat-checkbox formControlName="is_superuser">Django Superuser</mat-checkbox>
+                    </div>
+                </ng-container>
+
+                <!-- Owner-only: active toggle -->
+                <ng-container *ngIf="isOwnerContext && isEdit">
+                    <mat-checkbox formControlName="is_active">Active</mat-checkbox>
+                </ng-container>
+
                 <mat-form-field *ngIf="!isEdit">
                     <mat-label>Password</mat-label>
                     <input matInput formControlName="password" type="password">
@@ -71,10 +85,6 @@ import { UsersManagementService } from './users.service';
                     <mat-label>New Password (leave blank to keep current)</mat-label>
                     <input matInput formControlName="new_password" type="password">
                 </mat-form-field>
-                <div class="flex gap-4">
-                    <mat-checkbox formControlName="is_active">Active</mat-checkbox>
-                    <mat-checkbox formControlName="is_superuser">Django Superuser</mat-checkbox>
-                </div>
             </form>
             <p *ngIf="error" class="text-red-500 text-sm mt-2">{{ error }}</p>
         </mat-dialog-content>
@@ -90,9 +100,10 @@ import { UsersManagementService } from './users.service';
 export class UserFormDialogComponent implements OnInit
 {
     form: UntypedFormGroup;
-    saving    = false;
-    isEdit    = false;
-    error     = '';
+    saving         = false;
+    isEdit         = false;
+    isOwnerContext = false;
+    error          = '';
     businesses: any[] = [];
 
     constructor(
@@ -104,23 +115,40 @@ export class UserFormDialogComponent implements OnInit
 
     ngOnInit(): void
     {
-        this.isEdit = !!this.data;
-        this.form = this._fb.group({
-            first_name  : [this.data?.first_name   ?? ''],
-            last_name   : [this.data?.last_name    ?? ''],
-            email       : [this.data?.email        ?? '', [Validators.required, Validators.email]],
-            username    : [this.data?.username     ?? '', Validators.required],
-            phone       : [this.data?.phone        ?? ''],
-            role        : [this.data?.role         ?? 'owner'],
-            business    : [this.data?.business     ?? null],
-            is_active   : [this.data?.is_active    ?? true],
-            is_superuser: [this.data?.is_superuser ?? false],
-            ...(!this.isEdit ? { password: ['', Validators.required] } : { new_password: [''] }),
-        });
+        this.isOwnerContext = !!this.data?._ownerContext;
+        this.isEdit         = !!this.data?.id;
 
-        this._service.getBusinesses().subscribe({
-            next: (res) => { this.businesses = res.results ?? res; },
-        });
+        const base: any = {
+            first_name: [this.data?.first_name ?? ''],
+            last_name : [this.data?.last_name  ?? ''],
+            email     : [this.data?.email      ?? '', [Validators.required, Validators.email]],
+            username  : [this.data?.username   ?? '', Validators.required],
+            phone     : [this.data?.phone      ?? ''],
+        };
+
+        if (!this.isOwnerContext)
+        {
+            base.role         = [this.data?.role         ?? 'owner'];
+            base.business     = [this.data?.business     ?? null];
+            base.is_active    = [this.data?.is_active    ?? true];
+            base.is_superuser = [this.data?.is_superuser ?? false];
+        }
+        else if (this.isEdit)
+        {
+            base.is_active = [this.data?.is_active ?? true];
+        }
+
+        if (!this.isEdit) { base.password    = ['', Validators.required]; }
+        else              { base.new_password = ['']; }
+
+        this.form = this._fb.group(base);
+
+        if (!this.isOwnerContext)
+        {
+            this._service.getBusinesses().subscribe({
+                next: (res) => { this.businesses = res.results ?? res; },
+            });
+        }
     }
 
     save(): void
@@ -130,6 +158,7 @@ export class UserFormDialogComponent implements OnInit
         this.error  = '';
 
         const payload = { ...this.form.value };
+        delete payload._ownerContext;
         if (payload.business === null) { payload.business = null; }
         if (this.isEdit && !payload.new_password) { delete payload.new_password; }
 
@@ -143,7 +172,13 @@ export class UserFormDialogComponent implements OnInit
             {
                 this.saving = false;
                 const e = err?.error;
-                this.error = e?.email?.[0] ?? e?.username?.[0] ?? e?.password?.[0] ?? e?.detail ?? 'An error occurred.';
+                this.error = (typeof e === 'string' ? e : null)
+                    ?? e?.non_field_errors?.[0]
+                    ?? e?.email?.[0]
+                    ?? e?.username?.[0]
+                    ?? e?.password?.[0]
+                    ?? e?.detail
+                    ?? 'An error occurred.';
             },
         });
     }

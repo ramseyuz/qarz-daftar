@@ -10,8 +10,9 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, filters as df
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 
+from rest_framework.exceptions import PermissionDenied
 from core.mixins import BusinessScopedMixin, SoftDeleteMixin
-from core.permissions import BelongsToUserBusiness
+from core.permissions import BelongsToUserBusiness, IsSubscriptionActive
 from .models import Debt, DebtItem
 from .serializers import DebtSerializer, DebtCreateWithItemsSerializer, DebtItemSerializer
 
@@ -53,7 +54,7 @@ class DebtViewSet(SoftDeleteMixin, BusinessScopedMixin, viewsets.ModelViewSet):
         .prefetch_related("items", "payments")
         .all()
     )
-    permission_classes = [permissions.IsAuthenticated, BelongsToUserBusiness]
+    permission_classes = [permissions.IsAuthenticated, BelongsToUserBusiness, IsSubscriptionActive]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = DebtFilter
     search_fields = ["customer__full_name", "customer__phone", "description"]
@@ -64,6 +65,19 @@ class DebtViewSet(SoftDeleteMixin, BusinessScopedMixin, viewsets.ModelViewSet):
         if self.action == "create":
             return DebtCreateWithItemsSerializer
         return DebtSerializer
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not user.is_superadmin and user.business:
+            sub = user.business.current_subscription
+            if sub:
+                limit   = sub.plan.max_debts
+                current = Debt.objects.filter(business=user.business, is_deleted=False).count()
+                if current >= limit:
+                    raise PermissionDenied(
+                        f"Debt limit reached ({limit}). Upgrade your plan."
+                    )
+        super().perform_create(serializer)
 
     @extend_schema(summary="Summary stats for this business", tags=["Debts"])
     @action(detail=False, methods=["get"], url_path="summary")

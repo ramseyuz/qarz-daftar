@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { UserService } from 'app/core/user/user.service';
+import { SubscriptionService } from 'app/core/subscription/subscription.service';
 import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
 import { environment } from 'environments/environment';
 
@@ -13,6 +14,7 @@ export class AuthService
     constructor(
         private _httpClient: HttpClient,
         private _userService: UserService,
+        private _subscriptionService: SubscriptionService,
     ) {}
 
     set accessToken(token: string)
@@ -40,6 +42,14 @@ export class AuthService
         try {
             const payload = JSON.parse(atob(this.accessToken.split('.')[1]));
             return payload?.role === 'superadmin';
+        } catch { return false; }
+    }
+
+    get isOwner(): boolean
+    {
+        try {
+            const payload = JSON.parse(atob(this.accessToken.split('.')[1]));
+            return payload?.role === 'owner';
         } catch { return false; }
     }
 
@@ -73,9 +83,10 @@ export class AuthService
                     name  : user.full_name,
                     email : user.email,
                     role  : user.role,
+                    avatar: user.avatar ?? null,
                     status: 'online',
                 };
-
+                // subscription status is loaded fresh on profile fetch
                 return of(response);
             }),
         );
@@ -122,6 +133,10 @@ export class AuthService
                     avatar: response.avatar ?? null,
                     status: 'online',
                 };
+                this._subscriptionService.setStatus(
+                    response.subscription_valid !== false,
+                    response.subscription_end ?? null,
+                );
 
                 return of(true);
             }),

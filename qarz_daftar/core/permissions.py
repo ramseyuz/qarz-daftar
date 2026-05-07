@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from django.utils import timezone
 
 
 class IsSuperAdmin(BasePermission):
@@ -30,6 +31,30 @@ class IsOwnerOrReadOnly(BasePermission):
         if business is None:
             return False
         return business == request.user.business
+
+
+class IsSubscriptionActive(BasePermission):
+    """
+    Allows read-only for everyone, but blocks writes when the business
+    subscription is expired or absent. Superadmins are always allowed.
+    """
+    message = "Subscription expired or not assigned. Contact your administrator."
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        if user.is_superadmin:
+            return True
+        business = getattr(user, "business", None)
+        if not business:
+            return False
+        today = timezone.now().date()
+        return business.subscriptions.filter(
+            is_active=True, end_date__gte=today
+        ).exists()
 
 
 class BelongsToUserBusiness(BasePermission):

@@ -9,12 +9,14 @@ from rest_framework_simplejwt.views import (
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from core.permissions import IsSuperAdmin
+from core.permissions import IsSuperAdmin, IsBusinessOwner
 from .serializers import (
     UserRegistrationSerializer,
     UserProfileSerializer,
     UserAdminSerializer,
     UserAdminCreateSerializer,
+    OwnerEmployeeSerializer,
+    OwnerEmployeeCreateSerializer,
     CustomTokenObtainPairSerializer,
     ChangePasswordSerializer,
 )
@@ -126,15 +128,30 @@ class ChangePasswordView(APIView):
     destroy=extend_schema(summary="Delete user", tags=["Users"]),
 )
 class UsersViewSet(viewsets.ModelViewSet):
-    """Full user management — superadmin only."""
+    """
+    Superadmin: full CRUD over all users.
+    Owner: CRUD over employees of their own business (subject to max_users limit).
+    """
 
     queryset = User.objects.select_related("business").order_by("-date_joined")
-    permission_classes = [IsSuperAdmin]
+
+    def get_permissions(self):
+        return [IsBusinessOwner()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superadmin:
+            return User.objects.select_related("business").order_by("-date_joined")
+        if user.is_owner and user.business:
+            return User.objects.filter(
+                business=user.business, role=User.Role.EMPLOYEE
+            ).select_related("business").order_by("-date_joined")
+        return User.objects.none()
 
     def get_serializer_class(self):
-        if self.action in ("create",):
-            return UserAdminCreateSerializer
-        return UserAdminSerializer
+        if self.request.user.is_superadmin:
+            return UserAdminCreateSerializer if self.action == "create" else UserAdminSerializer
+        return OwnerEmployeeCreateSerializer if self.action == "create" else OwnerEmployeeSerializer
 
     def perform_destroy(self, instance):
         instance.is_active = False

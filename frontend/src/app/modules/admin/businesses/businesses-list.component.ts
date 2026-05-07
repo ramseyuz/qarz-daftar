@@ -30,7 +30,14 @@ export class BusinessesListComponent implements OnInit
     loading           = true;
     searchValue       = '';
     isSuperAdmin      = false;
-    displayedColumns  = ['name', 'phone', 'address', 'total_debt', 'total_remaining', 'is_active', 'actions'];
+    isOwner           = false;
+
+    get displayedColumns(): string[]
+    {
+        return this.isSuperAdmin
+            ? ['name', 'phone', 'address', 'employees', 'total_debt', 'total_remaining', 'is_active', 'actions']
+            : ['name', 'phone', 'address', 'employees', 'total_debt', 'total_remaining', 'is_active', 'actions'];
+    }
 
     private _search$ = new Subject<string>();
 
@@ -43,6 +50,7 @@ export class BusinessesListComponent implements OnInit
     ngOnInit(): void
     {
         this.isSuperAdmin = this._auth.isSuperAdmin;
+        this.isOwner      = this._auth.isOwner;
         this._load();
         this._search$.pipe(debounceTime(300)).subscribe(q => this._load(q));
     }
@@ -60,14 +68,18 @@ export class BusinessesListComponent implements OnInit
 
     openCreate(): void
     {
-        this._dialog.open(BusinessFormDialogComponent, { width: '500px' })
-            .afterClosed().subscribe(ok => { if (ok) { this._load(this.searchValue); } });
+        this._dialog.open(BusinessFormDialogComponent, {
+            width: '500px',
+            data : { _isSuperAdmin: this.isSuperAdmin },
+        }).afterClosed().subscribe(ok => { if (ok) { this._load(this.searchValue); } });
     }
 
     openEdit(b: any): void
     {
-        this._dialog.open(BusinessFormDialogComponent, { width: '500px', data: b })
-            .afterClosed().subscribe(ok => { if (ok) { this._load(this.searchValue); } });
+        this._dialog.open(BusinessFormDialogComponent, {
+            width: '500px',
+            data : { ...b, _isSuperAdmin: this.isSuperAdmin },
+        }).afterClosed().subscribe(ok => { if (ok) { this._load(this.searchValue); } });
     }
 
     delete(b: any): void

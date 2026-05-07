@@ -14,4 +14,14 @@ export class DashboardService
     {
         return this._http.get(`${this._api}/reports/debts/`);
     }
+
+    getMyBusiness(): Observable<any>
+    {
+        return this._http.get(`${this._api}/businesses/`);
+    }
+
+    getAllSubscriptions(): Observable<any>
+    {
+        return this._http.get(`${this._api}/subscriptions/`);
+    }
 }

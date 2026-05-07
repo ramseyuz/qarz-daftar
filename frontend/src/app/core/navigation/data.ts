@@ -52,6 +52,28 @@ export const defaultNavigation: FuseNavigationItem[] = [
             },
         ],
     },
+    {
+        id      : 'subscription-group',
+        title   : 'Subscriptions',
+        type    : 'group',
+        icon    : 'heroicons_outline:star',
+        children: [
+            {
+                id   : 'subscription-plans',
+                title: 'Plans',
+                type : 'basic',
+                icon : 'heroicons_outline:squares-2x2',
+                link : '/subscription-plans',
+            },
+            {
+                id   : 'subscriptions',
+                title: 'Subscriptions',
+                type : 'basic',
+                icon : 'heroicons_outline:calendar-days',
+                link : '/subscriptions',
+            },
+        ],
+    },
 ];
 
 export const navigation: Navigation = {

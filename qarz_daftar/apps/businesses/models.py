@@ -19,6 +19,10 @@ class Business(BaseModel):
     description = models.TextField(blank=True)
     logo = models.ImageField(upload_to="business_logos/", null=True, blank=True)
     is_active = models.BooleanField(default=True, db_index=True)
+    max_users = models.PositiveIntegerField(
+        default=10,
+        help_text=_("Maximum number of employees the owner can create for this business"),
+    )
 
     class Meta:
         verbose_name = _("Business")
@@ -27,6 +31,17 @@ class Business(BaseModel):
 
     def __str__(self):
         return self.name
+
+    @property
+    def current_subscription(self):
+        from django.utils import timezone
+        return self.subscriptions.filter(
+            is_active=True, end_date__gte=timezone.now().date()
+        ).select_related("plan").order_by("-end_date").first()
+
+    @property
+    def subscription_is_valid(self):
+        return self.current_subscription is not None
 
     @property
     def total_debt_amount(self):

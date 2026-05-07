@@ -17,14 +17,17 @@ from apps.customers.views import CustomerViewSet
 from apps.debts.views import DebtViewSet, DebtItemViewSet
 from apps.payments.views import PaymentViewSet
 from apps.debts.views import DebtReportView
+from apps.subscriptions.views import SubscriptionPlanViewSet, SubscriptionViewSet
 
 router = DefaultRouter()
-router.register(r"users",      UsersViewSet,   basename="user")
-router.register(r"businesses", BusinessViewSet, basename="business")
-router.register(r"customers", CustomerViewSet, basename="customer")
-router.register(r"debts", DebtViewSet, basename="debt")
-router.register(r"debt-items", DebtItemViewSet, basename="debt-item")
-router.register(r"payments", PaymentViewSet, basename="payment")
+router.register(r"users",               UsersViewSet,            basename="user")
+router.register(r"businesses",          BusinessViewSet,         basename="business")
+router.register(r"customers",           CustomerViewSet,         basename="customer")
+router.register(r"debts",              DebtViewSet,             basename="debt")
+router.register(r"debt-items",         DebtItemViewSet,         basename="debt-item")
+router.register(r"payments",           PaymentViewSet,          basename="payment")
+router.register(r"subscription-plans", SubscriptionPlanViewSet, basename="subscription-plan")
+router.register(r"subscriptions",      SubscriptionViewSet,     basename="subscription")
 
 urlpatterns = [
     # ── Auth ───────────────────────────────────

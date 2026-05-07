@@ -19,6 +19,8 @@ import {QuickChatComponent} from 'app/layout/common/quick-chat/quick-chat.compon
 import {SearchComponent} from 'app/layout/common/search/search.component';
 import {ShortcutsComponent} from 'app/layout/common/shortcuts/shortcuts.component';
 import {UserComponent} from 'app/layout/common/user/user.component';
+import {SubscriptionService} from 'app/core/subscription/subscription.service';
+import {FuseConfig, FuseConfigService} from '@fuse/services/config';
 import {Subject, takeUntil} from 'rxjs';
 
 @Component({
@@ -32,6 +34,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   isScreenSmall: boolean;
   navigation: Navigation;
   user: User;
+  currentScheme: string = 'light';
+  subscriptionValid = true;
+  subscriptionEnd: string | null = null;
   private _rawNavigation: Navigation;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -45,7 +50,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     private _userService: UserService,
     private _fuseMediaWatcherService: FuseMediaWatcherService,
     private _fuseNavigationService: FuseNavigationService,
+    private _fuseConfigService: FuseConfigService,
     private _httpClient: HttpClient,
+    public subscriptionService: SubscriptionService,
   ) {
   }
 
@@ -77,6 +84,14 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this._unsubscribeAll))
       .subscribe((user: User) => { this.user = user; this._applyNavigation(); });
 
+    this.subscriptionService.status$
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe(s => { this.subscriptionValid = s.valid; this.subscriptionEnd = s.endDate; });
+
+    this._fuseConfigService.config$
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((config: FuseConfig) => { this.currentScheme = config.scheme; });
+
     // Subscribe to media changes
     this._fuseMediaWatcherService.onMediaChange$
       .pipe(takeUntil(this._unsubscribeAll))
@@ -107,13 +122,27 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   private _applyNavigation(): void
   {
     if (!this._rawNavigation) { return; }
-    const isSuperAdmin = this.user?.role === 'superadmin';
-    const superadminOnly = new Set(['businesses', 'users']);
+    const role = this.user?.role;
+    const isSuperAdmin = role === 'superadmin';
+    const isOwner      = role === 'owner';
+    // superadmin-only items
+    const superadminOnly    = new Set(['subscription-group']);
+    // employees cannot see businesses or users sections
+    const hiddenForEmployee = new Set(['businesses', 'users']);
     this.navigation = {
       ...this._rawNavigation,
-      default: this._rawNavigation.default.filter(
-        item => isSuperAdmin || !superadminOnly.has(item.id)
+      default: this._rawNavigation.default.filter(item =>
+        !superadminOnly.has(item.id) || isSuperAdmin
+      ).filter(item =>
+        isSuperAdmin || isOwner || !hiddenForEmployee.has(item.id)
       ),
+    };
+  }
+
+  toggleScheme(): void
+  {
+    this._fuseConfigService.config = {
+      scheme: this.currentScheme === 'dark' ? 'light' : 'dark',
     };
   }
 

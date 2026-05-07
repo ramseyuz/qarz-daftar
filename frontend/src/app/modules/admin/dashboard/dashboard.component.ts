@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterLink } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { AuthService } from 'app/core/auth/auth.service';
 import { DashboardService } from './dashboard.service';
 
 @Component({
@@ -20,17 +21,27 @@ import { DashboardService } from './dashboard.service';
 })
 export class DashboardComponent implements OnInit
 {
-    loading  = true;
+    loading      = true;
     summary: any = null;
     monthly: any[] = [];
+    business: any  = null;
+    isSuperAdmin   = false;
+
+    // superadmin subscription overview
+    subStats = { total: 0, active: 0, expired: 0, none: 0 };
 
     donut: any = null;
     bar: any   = null;
 
-    constructor(private _service: DashboardService) {}
+    constructor(
+        private _service: DashboardService,
+        private _auth   : AuthService,
+    ) {}
 
     ngOnInit(): void
     {
+        this.isSuperAdmin = this._auth.isSuperAdmin;
+
         this._service.getDebtReport().subscribe({
             next : (res) =>
             {
@@ -41,6 +52,47 @@ export class DashboardComponent implements OnInit
             },
             error: () => { this.loading = false; },
         });
+
+        if (this.isSuperAdmin)
+        {
+            this._service.getAllSubscriptions().subscribe({
+                next: (res) =>
+                {
+                    const subs: any[] = res.results ?? res;
+                    this.subStats.total   = subs.length;
+                    this.subStats.active  = subs.filter(s => s.is_active && !s.is_expired).length;
+                    this.subStats.expired = subs.filter(s => s.is_expired).length;
+                },
+            });
+        }
+        else
+        {
+            this._service.getMyBusiness().subscribe({
+                next: (res) =>
+                {
+                    const list = res.results ?? res;
+                    this.business = list[0] ?? null;
+                },
+            });
+        }
+    }
+
+    get subscription(): any  { return this.business?.subscription ?? null; }
+    get userCount(): number  { return this.business?.user_count   ?? 0; }
+    get custCount(): number  { return this.business?.customer_count ?? 0; }
+    get debtCount(): number  { return this.summary?.total_debts   ?? 0; }
+
+    usagePct(used: number, max: number): number
+    {
+        if (!max) { return 0; }
+        return Math.min(100, Math.round(used / max * 100));
+    }
+
+    usageBarClass(pct: number): string
+    {
+        if (pct >= 90) { return 'bg-red-500'; }
+        if (pct >= 70) { return 'bg-amber-500'; }
+        return 'bg-indigo-500';
     }
 
     get collectionPct(): number

@@ -4,7 +4,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from core.mixins import SoftDeleteMixin
-from core.permissions import BelongsToUserBusiness
+from core.permissions import BelongsToUserBusiness, IsSubscriptionActive
 from .models import Payment
 from .serializers import PaymentSerializer
 
@@ -31,7 +31,7 @@ class PaymentFilter(FilterSet):
 class PaymentViewSet(SoftDeleteMixin, viewsets.ModelViewSet):
     queryset = Payment.objects.select_related("debt__customer", "debt__business").all()
     serializer_class = PaymentSerializer
-    permission_classes = [permissions.IsAuthenticated, BelongsToUserBusiness]
+    permission_classes = [permissions.IsAuthenticated, BelongsToUserBusiness, IsSubscriptionActive]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = PaymentFilter
     search_fields = ["debt__customer__full_name", "notes"]

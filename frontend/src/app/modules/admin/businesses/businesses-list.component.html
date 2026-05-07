@@ -37,7 +37,18 @@
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef>Name</th>
                     <td mat-cell *matCellDef="let b">
-                        <span class="font-semibold">{{ b.name }}</span>
+                        <div class="font-semibold">{{ b.name }}</div>
+                        <div *ngIf="b.subscription" class="text-xs mt-0.5">
+                            <span class="px-1.5 py-0.5 rounded-full font-medium"
+                                  [class.bg-green-100]="b.subscription.is_valid"
+                                  [class.text-green-700]="b.subscription.is_valid"
+                                  [class.bg-red-100]="!b.subscription.is_valid"
+                                  [class.text-red-600]="!b.subscription.is_valid">
+                                {{ b.subscription.plan_name }} ·
+                                {{ b.subscription.is_valid ? b.subscription.days_remaining + 'd left' : 'Expired' }}
+                            </span>
+                        </div>
+                        <div *ngIf="!b.subscription" class="text-xs text-secondary mt-0.5">No subscription</div>
                     </td>
                 </ng-container>
 
@@ -67,6 +78,17 @@
                     </td>
                 </ng-container>
 
+                <ng-container matColumnDef="employees">
+                    <th mat-header-cell *matHeaderCellDef class="text-center">Employees</th>
+                    <td mat-cell *matCellDef="let b" class="text-center">
+                        <span class="text-sm font-medium"
+                              [class.text-red-500]="b.user_count >= b.max_users"
+                              [class.text-green-600]="b.user_count < b.max_users">
+                            {{ b.user_count }} / {{ b.max_users }}
+                        </span>
+                    </td>
+                </ng-container>
+
                 <ng-container matColumnDef="is_active">
                     <th mat-header-cell *matHeaderCellDef class="text-center">Active</th>
                     <td mat-cell *matCellDef="let b" class="text-center">
@@ -78,11 +100,11 @@
                 <ng-container matColumnDef="actions">
                     <th mat-header-cell *matHeaderCellDef></th>
                     <td mat-cell *matCellDef="let b">
-                        <div *ngIf="isSuperAdmin" class="flex justify-end gap-1">
+                        <div class="flex justify-end gap-1">
                             <button mat-icon-button (click)="openEdit(b)" matTooltip="Edit">
                                 <mat-icon svgIcon="heroicons_outline:pencil-square"></mat-icon>
                             </button>
-                            <button mat-icon-button color="warn" (click)="delete(b)" matTooltip="Delete">
+                            <button *ngIf="isSuperAdmin" mat-icon-button color="warn" (click)="delete(b)" matTooltip="Delete">
                                 <mat-icon svgIcon="heroicons_outline:trash"></mat-icon>
                             </button>
                         </div>

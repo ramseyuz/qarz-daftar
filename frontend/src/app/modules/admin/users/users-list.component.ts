@@ -32,9 +32,19 @@ export class UsersListComponent implements OnInit
     loading          = true;
     searchValue      = '';
     isSuperAdmin     = false;
-    displayedColumns = ['name', 'email', 'role', 'business', 'is_active', 'joined', 'actions'];
+    isOwner          = false;
+    maxUsers         = 0;
+    userCount        = 0;
 
     private _search$ = new Subject<string>();
+
+    get canCreateUser(): boolean { return this.isSuperAdmin || (this.isOwner && this.userCount < this.maxUsers); }
+    get displayedColumns(): string[]
+    {
+        return this.isSuperAdmin
+            ? ['name', 'email', 'role', 'business', 'is_active', 'joined', 'actions']
+            : ['name', 'email', 'phone', 'is_active', 'joined', 'actions'];
+    }
 
     constructor(
         private _service: UsersManagementService,
@@ -45,16 +55,33 @@ export class UsersListComponent implements OnInit
     ngOnInit(): void
     {
         this.isSuperAdmin = this._auth.isSuperAdmin;
+        this.isOwner      = this._auth.isOwner;
         this._load();
         this._search$.pipe(debounceTime(300)).subscribe(() => this._load());
+
+        if (this.isOwner)
+        {
+            this._service.getBusinesses().subscribe({
+                next: (res) =>
+                {
+                    const biz = (res.results ?? res)[0];
+                    if (biz) { this.maxUsers = biz.max_users ?? 10; this.userCount = biz.user_count ?? 0; }
+                },
+            });
+        }
     }
 
     private _load(): void
     {
         this.loading = true;
         this._service.getAll({ search: this.searchValue }).subscribe({
-            next : (res) => { this.users = res.results ?? res; this.loading = false; },
-            error: ()    => { this.loading = false; },
+            next : (res) =>
+            {
+                this.users     = res.results ?? res;
+                this.userCount = this.users.filter(u => u.is_active).length;
+                this.loading   = false;
+            },
+            error: () => { this.loading = false; },
         });
     }
 
@@ -62,14 +89,18 @@ export class UsersListComponent implements OnInit
 
     openCreate(): void
     {
-        this._dialog.open(UserFormDialogComponent, { width: '560px', data: null })
-            .afterClosed().subscribe(ok => { if (ok) { this._load(); } });
+        this._dialog.open(UserFormDialogComponent, {
+            width: '560px',
+            data : { _ownerContext: this.isOwner },
+        }).afterClosed().subscribe(ok => { if (ok) { this._load(); } });
     }
 
     openEdit(u: any): void
     {
-        this._dialog.open(UserFormDialogComponent, { width: '560px', data: u })
-            .afterClosed().subscribe(ok => { if (ok) { this._load(); } });
+        this._dialog.open(UserFormDialogComponent, {
+            width: '560px',
+            data : { ...u, _ownerContext: this.isOwner },
+        }).afterClosed().subscribe(ok => { if (ok) { this._load(); } });
     }
 
     deactivate(u: any): void

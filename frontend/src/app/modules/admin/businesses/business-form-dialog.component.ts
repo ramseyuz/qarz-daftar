@@ -39,6 +39,11 @@ import { BusinessesService } from './businesses.service';
                     <mat-label>Description</mat-label>
                     <textarea matInput formControlName="description" rows="2"></textarea>
                 </mat-form-field>
+                <mat-form-field *ngIf="isSuperAdmin">
+                    <mat-label>Max Employees</mat-label>
+                    <input matInput formControlName="max_users" type="number" min="1">
+                    <mat-hint>Maximum number of employees this business can have</mat-hint>
+                </mat-form-field>
             </form>
             <p *ngIf="error" class="text-red-500 text-sm mt-2">{{ error }}</p>
         </mat-dialog-content>
@@ -54,9 +59,10 @@ import { BusinessesService } from './businesses.service';
 export class BusinessFormDialogComponent implements OnInit
 {
     form: UntypedFormGroup;
-    saving = false;
-    isEdit = false;
-    error  = '';
+    saving       = false;
+    isEdit       = false;
+    isSuperAdmin = false;
+    error        = '';
 
     constructor(
         private _fb: UntypedFormBuilder,
@@ -67,12 +73,15 @@ export class BusinessFormDialogComponent implements OnInit
 
     ngOnInit(): void
     {
-        this.isEdit = !!this.data;
+        this.isSuperAdmin = !!this.data?._isSuperAdmin;
+        this.isEdit       = !!this.data?.id;
+
         this.form = this._fb.group({
             name       : [this.data?.name        ?? '', Validators.required],
             phone      : [this.data?.phone        ?? '', Validators.required],
             address    : [this.data?.address      ?? ''],
             description: [this.data?.description  ?? ''],
+            ...(this.isSuperAdmin ? { max_users: [this.data?.max_users ?? 10, [Validators.required, Validators.min(1)]] } : {}),
         });
     }
 
@@ -82,9 +91,12 @@ export class BusinessFormDialogComponent implements OnInit
         this.saving = true;
         this.error  = '';
 
+        const payload = { ...this.form.value };
+        delete payload._isSuperAdmin;
+
         const req = this.isEdit
-            ? this._service.update(this.data.id, this.form.value)
-            : this._service.create(this.form.value);
+            ? this._service.update(this.data.id, payload)
+            : this._service.create(payload);
 
         req.subscribe({
             next : () => { this.saving = false; this._dialogRef.close(true); },

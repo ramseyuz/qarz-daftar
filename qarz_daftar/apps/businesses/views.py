@@ -24,7 +24,7 @@ from .serializers import BusinessSerializer, BusinessCreateSerializer
     destroy=extend_schema(summary="Soft-delete a business", tags=["Business"]),
 )
 class BusinessViewSet(BusinessScopedMixin, viewsets.ModelViewSet):
-    queryset = Business.objects.all()
+    queryset = Business.objects.prefetch_related("subscriptions__plan", "customers", "users")
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):

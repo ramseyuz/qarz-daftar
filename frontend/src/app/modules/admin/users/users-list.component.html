@@ -4,14 +4,22 @@
     <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between p-6 sm:py-8 sm:px-10 border-b bg-card dark:bg-transparent">
         <div class="flex-1 min-w-0">
             <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight leading-7 sm:leading-10 truncate">
-                Users
+                {{ isSuperAdmin ? 'Users' : 'Employees' }}
             </h2>
-            <p class="text-secondary mt-1 text-sm">Manage all system users</p>
+            <p class="text-secondary mt-1 text-sm">
+                <ng-container *ngIf="isSuperAdmin">Manage all system users</ng-container>
+                <ng-container *ngIf="isOwner">
+                    {{ userCount }} / {{ maxUsers }} employees used
+                </ng-container>
+            </p>
         </div>
-        <button *ngIf="isSuperAdmin" mat-flat-button color="primary" (click)="openCreate()">
+        <button *ngIf="canCreateUser" mat-flat-button color="primary" (click)="openCreate()">
             <mat-icon svgIcon="heroicons_outline:plus"></mat-icon>
-            <span class="ml-2">New User</span>
+            <span class="ml-2">{{ isOwner ? 'New Employee' : 'New User' }}</span>
         </button>
+        <div *ngIf="isOwner && !canCreateUser" class="text-sm text-warn font-medium px-3 py-2 bg-warn-50 rounded-lg">
+            Employee limit reached ({{ maxUsers }}). Contact administrator.
+        </div>
     </div>
 
     <!-- Content -->
@@ -41,6 +49,11 @@
                 <ng-container matColumnDef="email">
                     <th mat-header-cell *matHeaderCellDef>Email</th>
                     <td mat-cell *matCellDef="let u">{{ u.email }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="phone">
+                    <th mat-header-cell *matHeaderCellDef>Phone</th>
+                    <td mat-cell *matCellDef="let u">{{ u.phone || '—' }}</td>
                 </ng-container>
 
                 <ng-container matColumnDef="role">
