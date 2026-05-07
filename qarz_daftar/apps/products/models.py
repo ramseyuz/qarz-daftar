@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils.translation import gettext_lazy as _
@@ -15,7 +17,7 @@ class Product(BaseModel):
     description = models.TextField(blank=True)
     price = models.DecimalField(
         max_digits=15, decimal_places=2,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(Decimal("0"))],
         verbose_name=_("Price"),
     )
     unit = models.CharField(max_length=50, default="pcs", verbose_name=_("Unit"))

@@ -3,9 +3,11 @@ from .models import Product
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    business_name = serializers.CharField(source="business.name", read_only=True)
+
     class Meta:
         model = Product
-        fields = ["id", "business", "name", "description", "price", "unit", "is_active", "created_at"]
+        fields = ["id", "business", "business_name", "name", "description", "price", "unit", "is_active", "created_at"]
         read_only_fields = ["id", "business", "created_at"]
 
     def create(self, validated_data):
